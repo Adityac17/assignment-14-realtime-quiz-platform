@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Host · Live Quiz Battle</title>
+  <style>
+    :root {
+      --bg1: #1a0b2e; --bg2: #2d1b4e;
+      --accent: #ff2e63; --accent2: #08d9d6;
+      --red:#e21b3c; --blue:#1368ce; --yellow:#d89e00; --green:#26890c;
+      --text:#f5f5f7; --muted:#b8a9d9;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      min-height: 100vh;
+      background: radial-gradient(circle at 80% 10%, var(--bg2), var(--bg1));
+      color: var(--text); padding: 24px;
+    }
+    .hidden { display: none !important; }
+    .wrap { max-width: 900px; margin: 0 auto; }
+    h1 { font-size: 1.8rem; margin-bottom: 20px; }
+    .panel {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px; padding: 28px; margin-bottom: 20px;
+    }
+    label { display:block; margin-bottom:6px; color: var(--muted); font-size:.9rem; }
+    input {
+      width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.25); color: var(--text); font-size: 1rem; margin-bottom: 16px;
+    }
+    button {
+      cursor: pointer; border: none; border-radius: 12px; padding: 14px 22px;
+      font-size: 1.05rem; font-weight: 700; color: #fff;
+      background: linear-gradient(90deg, var(--accent), #ff6b9d); transition: transform .12s;
+    }
+    button:hover { transform: translateY(-2px); }
+    button:disabled { opacity:.5; cursor: not-allowed; transform:none; }
+    .pin-display { text-align:center; }
+    .pin-label { color: var(--muted); text-transform: uppercase; letter-spacing:2px; font-size:.85rem; }
+    .pin { font-size: clamp(3rem,12vw,6rem); font-weight:800; letter-spacing: 10px;
+      background: linear-gradient(90deg,var(--accent),var(--accent2));
+      -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+    .roster { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; justify-content:center; }
+    .chip { background: rgba(8,217,214,0.15); border:1px solid var(--accent2); border-radius: 999px;
+      padding: 8px 16px; font-weight:600; }
+    .qmeta { color: var(--muted); margin-bottom: 8px; }
+    .qtext { font-size: 1.6rem; font-weight: 700; margin-bottom: 20px; }
+    .opts { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .opt { padding: 20px; border-radius: 14px; font-size: 1.15rem; font-weight:600; display:flex; align-items:center; gap:12px; }
+    .opt.o0 { background: var(--red); } .opt.o1 { background: var(--blue); }
+    .opt.o2 { background: var(--yellow); } .opt.o3 { background: var(--green); }
+    .opt .shape { font-size: 1.4rem; }
+    .opt.correct { outline: 5px solid #fff; box-shadow: 0 0 30px rgba(255,255,255,.6); }
+    .opt.dim { opacity: .35; }
+    .timer { text-align:center; font-size: 3rem; font-weight:800; margin: 10px 0; }
+    .explain { margin-top: 18px; padding: 16px; border-radius: 12px; background: rgba(0,0,0,0.25);
+      border-left: 4px solid var(--accent2); }
+    ul.lb { list-style:none; margin-top: 12px; }
+    .lb-row { display:flex; align-items:center; gap: 14px; padding: 12px 16px; margin-bottom: 8px;
+      background: rgba(255,255,255,0.05); border-radius: 12px; }
+    .lb-rank { font-weight:800; color: var(--accent2); width: 44px; }
+    .lb-name { flex:1; font-weight:600; }
+    .lb-score { font-weight:800; font-size: 1.2rem; }
+    .winner { text-align:center; }
+    .winner .crown { font-size: 4rem; }
+    .winner h2 { font-size: 2.4rem; margin: 10px 0; }
+    .answered { text-align:center; color: var(--muted); margin-top: 10px; }
+    a.back { color: var(--muted); text-decoration:none; font-size:.9rem; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>&#127942; Host Console <a class="back" href="index.html">&larr; portal</a></h1>
+
+  <!-- Create -->
+  <section id="createPanel" class="panel">
+    <label for="hostName">Your name (host)</label>
+    <input id="hostName" placeholder="e.g. Quiz Master" maxlength="24" />
+    <label for="category">Category / title</label>
+    <input id="category" placeholder="e.g. Tech Trivia Night" maxlength="40" />
+    <button id="createBtn">Create Quiz Room</button>
+  </section>
+
+  <!-- Lobby -->
+  <section id="lobbyPanel" class="panel hidden">
+    <div class="pin-display">
+      <div class="pin-label">Game PIN — join at this device's URL</div>
+      <div class="pin" id="pinValue">----</div>
+    </div>
+    <div class="roster" id="roster"></div>
+    <p class="answered" id="lobbyHint">Waiting for players to join…</p>
+    <div style="text-align:center; margin-top:18px;">
+      <button id="startBtn" disabled>Start Game</button>
+    </div>
+  </section>
+
+  <!-- Question -->
+  <section id="questionPanel" class="panel hidden">
+    <div class="qmeta" id="qMeta"></div>
+    <div class="qtext" id="qText"></div>
+    <div class="timer" id="timer">15</div>
+    <div class="opts" id="opts"></div>
+    <p class="answered" id="answeredCount"></p>
+    <div class="explain hidden" id="explainBox"></div>
+    <div style="text-align:center; margin-top:18px;">
+      <button id="nextBtn" class="hidden">Next</button>
+    </div>
+  </section>
+
+  <!-- Leaderboard -->
+  <section id="leaderboardPanel" class="panel hidden">
+    <h2>Leaderboard</h2>
+    <ul class="lb" id="lbList"></ul>
+  </section>
+
+  <!-- Final -->
+  <section id="finalPanel" class="panel winner hidden">
+    <div class="crown">&#128081;</div>
+    <h2 id="winnerName">Winner</h2>
+    <p id="winnerScore" class="pin-label"></p>
+    <ul class="lb" id="finalList" style="margin-top:24px;"></ul>
+    <div style="margin-top:20px;"><a class="back" href="host.html">Host another game</a></div>
+  </section>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="app.js"></script>
+<script>
+  const Q = window.QuizClient;
+  const socket = Q.connectSocket();
+  let pin = null;
+  let countdownInt = null;
+
+  const panels = {
+    create: Q.$('#createPanel'),
+    lobby: Q.$('#lobbyPanel'),
+    question: Q.$('#questionPanel'),
+    leaderboard: Q.$('#leaderboardPanel'),
+    final: Q.$('#finalPanel'),
+  };
+
+  Q.$('#createBtn').addEventListener('click', () => {
+    const hostName = Q.$('#hostName').value.trim() || 'Host';
+    const category = Q.$('#category').value.trim();
+    socket.emit('quiz:create', { hostName, category });
+  });
+
+  socket.on('quiz:created', ({ pin: p }) => {
+    pin = p;
+    Q.setText(Q.$('#pinValue'), pin);
+    Q.hide(panels.create);
+    Q.show(panels.lobby);
+  });
+
+  socket.on('lobby:update', ({ players }) => {
+    const roster = Q.$('#roster');
+    roster.innerHTML = '';
+    players.forEach((pl) => {
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = pl.name;
+      roster.appendChild(chip);
+    });
+    const start = Q.$('#startBtn');
+    start.disabled = players.length === 0;
+    Q.setText(Q.$('#lobbyHint'),
+      players.length === 0 ? 'Waiting for players to join…'
+        : players.length + ' player(s) ready. Start when you are!');
+  });
+
+  Q.$('#startBtn').addEventListener('click', () => socket.emit('quiz:start', { pin }));
+
+  const shapes = ['&#9650;', '&#9670;', '&#9679;', '&#9632;']; // triangle, diamond, circle, square
+
+  socket.on('question:start', ({ questionIndex, totalQuestions, question, options, timeLimitSeconds }) => {
+    Q.hide(panels.lobby); Q.hide(panels.leaderboard); Q.hide(panels.final);
+    Q.show(panels.question);
+    Q.hide(Q.$('#explainBox')); Q.hide(Q.$('#nextBtn'));
+    Q.setText(Q.$('#qMeta'), 'Question ' + (questionIndex + 1) + ' of ' + totalQuestions);
+    Q.setText(Q.$('#qText'), question);
+    Q.setText(Q.$('#answeredCount'), '');
+
+    const optsEl = Q.$('#opts');
+    optsEl.innerHTML = '';
+    options.forEach((opt, i) => {
+      const div = document.createElement('div');
+      div.className = 'opt o' + i;
+      div.id = 'opt' + i;
+      div.innerHTML = '<span class="shape">' + shapes[i] + '</span>' + Q.escapeHtml(opt);
+      optsEl.appendChild(div);
+    });
+
+    // Local countdown mirror (server remains authoritative).
+    let t = timeLimitSeconds;
+    Q.setText(Q.$('#timer'), t);
+    clearInterval(countdownInt);
+    countdownInt = setInterval(() => {
+      t -= 1;
+      Q.setText(Q.$('#timer'), Math.max(0, t));
+      if (t <= 0) clearInterval(countdownInt);
+    }, 1000);
+  });
+
+  socket.on('answer:count', ({ answered, total }) => {
+    Q.setText(Q.$('#answeredCount'), answered + ' / ' + total + ' answered');
+  });
+
+  socket.on('question:time_up', ({ correctOption, explanation }) => {
+    clearInterval(countdownInt);
+    Q.setText(Q.$('#timer'), '0');
+    Q.$all('.opt').forEach((el, i) => {
+      if (i === correctOption) el.classList.add('correct');
+      else el.classList.add('dim');
+    });
+    const box = Q.$('#explainBox');
+    box.innerHTML = '<strong>Answer:</strong> ' + Q.escapeHtml(explanation);
+    Q.show(box);
+    Q.show(Q.$('#nextBtn'));
+  });
+
+  Q.$('#nextBtn').addEventListener('click', () => socket.emit('quiz:next', { pin }));
+
+  socket.on('leaderboard:update', ({ leaderboard }) => {
+    Q.renderLeaderboard(Q.$('#lbList'), leaderboard);
+    Q.show(panels.leaderboard);
+  });
+
+  socket.on('quiz:ended', ({ winner, finalRanks }) => {
+    clearInterval(countdownInt);
+    Q.hide(panels.question); Q.hide(panels.leaderboard);
+    Q.show(panels.final);
+    Q.setText(Q.$('#winnerName'), winner ? winner.name + ' wins!' : 'Game over');
+    Q.setText(Q.$('#winnerScore'), winner ? winner.score + ' points' : '');
+    Q.renderLeaderboard(Q.$('#finalList'), finalRanks);
+  });
+
+  socket.on('quiz:error', ({ message }) => alert(message));
+</script>
+</body>
+</html>

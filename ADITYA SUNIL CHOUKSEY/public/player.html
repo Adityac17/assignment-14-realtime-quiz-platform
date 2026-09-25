@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Play · Live Quiz Battle</title>
+  <style>
+    :root {
+      --bg1:#1a0b2e; --bg2:#2d1b4e; --accent:#ff2e63; --accent2:#08d9d6;
+      --red:#e21b3c; --blue:#1368ce; --yellow:#d89e00; --green:#26890c;
+      --text:#f5f5f7; --muted:#b8a9d9;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family:"Segoe UI", system-ui, sans-serif; min-height:100vh;
+      background: radial-gradient(circle at 50% 0%, var(--bg2), var(--bg1));
+      color:var(--text); padding:18px; display:flex; flex-direction:column;
+    }
+    .hidden { display:none !important; }
+    .top { text-align:center; margin-bottom:16px; }
+    .top h1 { font-size:1.3rem;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+      -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+    .card {
+      background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);
+      border-radius:18px; padding:22px; max-width:480px; width:100%; margin:0 auto;
+    }
+    label { display:block; margin-bottom:6px; color:var(--muted); font-size:.9rem; }
+    input {
+      width:100%; padding:14px; border-radius:10px; border:1px solid rgba(255,255,255,0.2);
+      background:rgba(0,0,0,0.25); color:var(--text); font-size:1.1rem; margin-bottom:16px; text-align:center;
+    }
+    #pin { letter-spacing:8px; font-weight:700; }
+    button {
+      width:100%; cursor:pointer; border:none; border-radius:12px; padding:16px;
+      font-size:1.1rem; font-weight:700; color:#fff;
+      background:linear-gradient(90deg,var(--accent),#ff6b9d);
+    }
+    .status { text-align:center; color:var(--muted); margin-top:12px; }
+    .waiting { text-align:center; padding:40px 0; }
+    .waiting .spinner {
+      width:54px; height:54px; border:5px solid rgba(255,255,255,0.15);
+      border-top-color: var(--accent2); border-radius:50%; margin:0 auto 18px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:8px; }
+    .abtn {
+      border:none; border-radius:16px; min-height:120px; font-size:2.2rem; color:#fff;
+      display:flex; align-items:center; justify-content:center; font-weight:800;
+      transition: transform .1s, opacity .2s;
+    }
+    .abtn:active { transform: scale(.96); }
+    .abtn.b0 { background:var(--red); } .abtn.b1 { background:var(--blue); }
+    .abtn.b2 { background:var(--yellow); } .abtn.b3 { background:var(--green); }
+    .abtn:disabled { opacity:.4; }
+    .abtn.picked { outline:5px solid #fff; }
+    .qhead { text-align:center; margin-bottom:12px; }
+    .qhead .num { color:var(--muted); font-size:.85rem; }
+    .qhead .timer { font-size:2.4rem; font-weight:800; }
+    .result { text-align:center; padding:30px 0; }
+    .result .big { font-size:3rem; margin-bottom:8px; }
+    .result.correct .big { color:#4ade80; }
+    .result.wrong .big { color:#f87171; }
+    .score-line { font-size:1.4rem; font-weight:800; margin-top:6px; }
+    .rank-line { color:var(--muted); margin-top:4px; }
+    a.back { color:var(--muted); text-decoration:none; font-size:.85rem; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <h1>&#128241; Live Quiz Battle</h1>
+    <a class="back" href="index.html">&larr; portal</a>
+  </div>
+
+  <!-- Join -->
+  <section id="joinCard" class="card">
+    <label for="pin">Game PIN</label>
+    <input id="pin" inputmode="numeric" maxlength="4" placeholder="1234" />
+    <label for="name">Your nickname</label>
+    <input id="name" maxlength="20" placeholder="e.g. SpeedyGonzalez" />
+    <button id="joinBtn">Join Game</button>
+    <p class="status" id="joinStatus"></p>
+  </section>
+
+  <!-- Waiting -->
+  <section id="waitCard" class="card hidden">
+    <div class="waiting">
+      <div class="spinner"></div>
+      <p>You're in! Waiting for the host to start…</p>
+      <p class="status" id="waitName"></p>
+    </div>
+  </section>
+
+  <!-- Question -->
+  <section id="playCard" class="card hidden">
+    <div class="qhead">
+      <div class="num" id="qNum"></div>
+      <div class="timer" id="pTimer">15</div>
+    </div>
+    <div class="grid" id="grid"></div>
+    <p class="status" id="playStatus"></p>
+  </section>
+
+  <!-- Result -->
+  <section id="resultCard" class="card hidden">
+    <div class="result" id="resultBox">
+      <div class="big" id="resultIcon"></div>
+      <div id="resultText"></div>
+      <div class="score-line" id="scoreLine"></div>
+      <div class="rank-line" id="rankLine"></div>
+    </div>
+  </section>
+
+  <!-- Final -->
+  <section id="finalCard" class="card hidden">
+    <div class="result">
+      <div class="big">&#127937;</div>
+      <div id="finalText" style="font-size:1.3rem; font-weight:700;"></div>
+      <div class="score-line" id="finalScore"></div>
+      <div class="rank-line" id="finalRank"></div>
+      <div style="margin-top:20px;"><a class="back" href="player.html">Play again</a></div>
+    </div>
+  </section>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="app.js"></script>
+<script>
+  const Q = window.QuizClient;
+  const socket = Q.connectSocket();
+  let pin = null;
+  let myName = null;
+  let questionStartLocal = 0;
+  let countdownInt = null;
+  let currentIndexAnswered = false;
+
+  const cards = {
+    join: Q.$('#joinCard'),
+    wait: Q.$('#waitCard'),
+    play: Q.$('#playCard'),
+    result: Q.$('#resultCard'),
+    final: Q.$('#finalCard'),
+  };
+  function only(card) {
+    Object.values(cards).forEach(Q.hide);
+    Q.show(card);
+  }
+
+  Q.$('#joinBtn').addEventListener('click', () => {
+    pin = Q.$('#pin').value.trim();
+    myName = Q.$('#name').value.trim();
+    if (!/^\d{4}$/.test(pin)) { Q.setText(Q.$('#joinStatus'), 'Enter a valid 4-digit PIN.'); return; }
+    if (!myName) { Q.setText(Q.$('#joinStatus'), 'Enter a nickname.'); return; }
+    socket.emit('quiz:join', { pin, playerName: myName });
+  });
+
+  socket.on('quiz:joined', ({ category, hostName }) => {
+    only(cards.wait);
+    Q.setText(Q.$('#waitName'), 'Playing "' + category + '" hosted by ' + hostName);
+  });
+
+  socket.on('quiz:error', ({ message }) => {
+    Q.setText(Q.$('#joinStatus'), message);
+  });
+
+  const shapes = ['&#9650;', '&#9670;', '&#9679;', '&#9632;'];
+
+  socket.on('question:start', ({ questionIndex, totalQuestions, options, timeLimitSeconds }) => {
+    only(cards.play);
+    currentIndexAnswered = false;
+    questionStartLocal = Date.now();
+    Q.setText(Q.$('#qNum'), 'Question ' + (questionIndex + 1) + ' of ' + totalQuestions);
+    Q.setText(Q.$('#playStatus'), 'Tap your answer!');
+
+    const grid = Q.$('#grid');
+    grid.innerHTML = '';
+    options.forEach((_, i) => {
+      const b = document.createElement('button');
+      b.className = 'abtn b' + i;
+      b.innerHTML = shapes[i];
+      b.addEventListener('click', () => submit(i, b));
+      grid.appendChild(b);
+    });
+
+    let t = timeLimitSeconds;
+    Q.setText(Q.$('#pTimer'), t);
+    clearInterval(countdownInt);
+    countdownInt = setInterval(() => {
+      t -= 1;
+      Q.setText(Q.$('#pTimer'), Math.max(0, t));
+      if (t <= 0) clearInterval(countdownInt);
+    }, 1000);
+  });
+
+  function submit(i, btn) {
+    if (currentIndexAnswered) return;
+    currentIndexAnswered = true;
+    const timeTakenMs = Date.now() - questionStartLocal;
+    Q.$all('.abtn').forEach((b) => (b.disabled = true));
+    btn.classList.add('picked');
+    Q.setText(Q.$('#playStatus'), 'Answer locked in! Waiting for others…');
+    socket.emit('answer:submit', { pin, selectedOption: i, timeTakenMs });
+  }
+
+  socket.on('answer:ack', ({ pointsEarned }) => {
+    Q.setText(Q.$('#playStatus'), 'Locked in (' + pointsEarned + ' provisional pts). Waiting…');
+  });
+  socket.on('answer:rejected', ({ message }) => {
+    Q.setText(Q.$('#playStatus'), message);
+  });
+
+  let lastCorrectOption = null;
+  socket.on('question:time_up', ({ correctOption }) => {
+    clearInterval(countdownInt);
+    lastCorrectOption = correctOption;
+  });
+
+  socket.on('leaderboard:update', ({ leaderboard }) => {
+    const me = leaderboard.find((r) => r.name === myName);
+    const myScore = me ? me.score : 0;
+    const myRank = me ? me.rank : '-';
+    const box = Q.$('#resultBox');
+    box.className = 'result';
+    // We infer correctness from whether our pick matched; server already scored.
+    const grid = Q.$('#grid');
+    const picked = grid ? grid.querySelector('.picked') : null;
+    const pickedIndex = picked ? Array.from(grid.children).indexOf(picked) : -1;
+    const wasCorrect = pickedIndex !== -1 && pickedIndex === lastCorrectOption;
+
+    Q.setText(Q.$('#resultIcon'), wasCorrect ? '✅' : (pickedIndex === -1 ? '⏱️' : '❌'));
+    box.classList.add(wasCorrect ? 'correct' : 'wrong');
+    Q.setText(Q.$('#resultText'),
+      pickedIndex === -1 ? 'No answer submitted'
+        : (wasCorrect ? 'Correct!' : 'Not quite!'));
+    Q.setText(Q.$('#scoreLine'), 'Total score: ' + myScore);
+    Q.setText(Q.$('#rankLine'), 'Current rank: #' + myRank);
+    only(cards.result);
+  });
+
+  socket.on('quiz:ended', ({ winner, finalRanks }) => {
+    clearInterval(countdownInt);
+    const me = finalRanks.find((r) => r.name === myName);
+    const isWinner = winner && me && winner.name === me.name;
+    Q.setText(Q.$('#finalText'),
+      isWinner ? 'You won! ' : (winner ? winner.name + ' won the game' : 'Game over'));
+    Q.setText(Q.$('#finalScore'), me ? 'Your score: ' + me.score : '');
+    Q.setText(Q.$('#finalRank'), me ? 'Final rank: #' + me.rank + ' of ' + finalRanks.length : '');
+    only(cards.final);
+  });
+
+  socket.on('quiz:aborted', ({ message }) => {
+    alert(message);
+    only(cards.join);
+  });
+</script>
+</body>
+</html>

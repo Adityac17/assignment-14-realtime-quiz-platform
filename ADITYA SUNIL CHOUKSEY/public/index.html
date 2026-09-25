@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Quiz Battle</title>
+  <style>
+    :root {
+      --bg1: #1a0b2e;
+      --bg2: #2d1b4e;
+      --accent: #ff2e63;
+      --accent2: #08d9d6;
+      --text: #f5f5f7;
+      --muted: #b8a9d9;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      background: radial-gradient(circle at 20% 20%, var(--bg2), var(--bg1));
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .portal {
+      text-align: center;
+      max-width: 640px;
+      width: 100%;
+    }
+    h1 {
+      font-size: clamp(2.2rem, 7vw, 4rem);
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+      letter-spacing: -1px;
+    }
+    .tagline { color: var(--muted); font-size: 1.1rem; margin-bottom: 40px; }
+    .cards { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+    .card {
+      flex: 1 1 240px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      padding: 32px 24px;
+      text-decoration: none;
+      color: var(--text);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s;
+      display: block;
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: var(--accent2);
+      box-shadow: 0 12px 40px rgba(8,217,214,0.25);
+    }
+    .card .emoji { font-size: 3rem; display: block; margin-bottom: 12px; }
+    .card h2 { font-size: 1.5rem; margin-bottom: 8px; }
+    .card p { color: var(--muted); font-size: .95rem; }
+    .host { border-top: 4px solid var(--accent); }
+    .play { border-top: 4px solid var(--accent2); }
+    footer { margin-top: 48px; color: var(--muted); font-size: .85rem; }
+  </style>
+</head>
+<body>
+  <main class="portal">
+    <h1>Live Quiz Battle</h1>
+    <p class="tagline">Real-time multiplayer trivia. Host a room, share the PIN, and battle for the top of the leaderboard.</p>
+    <div class="cards">
+      <a class="card host" href="host.html">
+        <span class="emoji">&#127942;</span>
+        <h2>Host a Game</h2>
+        <p>Create a quiz, get a 4-digit PIN, and run the show from the big screen.</p>
+      </a>
+      <a class="card play" href="player.html">
+        <span class="emoji">&#128241;</span>
+        <h2>Join a Game</h2>
+        <p>Enter a PIN on your phone and tap the colored buttons to answer fast.</p>
+      </a>
+    </div>
+    <footer>Built with Node.js, Express &amp; Socket.io &middot; by Aditya S Chouksey</footer>
+  </main>
+</body>
+</html>

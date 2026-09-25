@@ -1,0 +1,59 @@
+{
+  "category": "Tech & General Knowledge",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Which HTTP status code means 'Not Found'?",
+      "options": ["200", "301", "404", "500"],
+      "correctOption": 2,
+      "explanation": "404 signals the server could not find the requested resource. 200 means OK, 301 is a permanent redirect, and 500 is an internal server error."
+    },
+    {
+      "id": 2,
+      "question": "In JavaScript, which keyword declares a block-scoped variable that cannot be reassigned?",
+      "options": ["var", "let", "const", "static"],
+      "correctOption": 2,
+      "explanation": "'const' creates a block-scoped binding that cannot be reassigned. 'let' is block-scoped but reassignable, and 'var' is function-scoped."
+    },
+    {
+      "id": 3,
+      "question": "What does the 'S' in HTTPS stand for?",
+      "options": ["Simple", "Secure", "Standard", "Session"],
+      "correctOption": 1,
+      "explanation": "HTTPS stands for HyperText Transfer Protocol Secure; the 'S' denotes the TLS/SSL encryption layer protecting the connection."
+    },
+    {
+      "id": 4,
+      "question": "Which company originally developed the Node.js runtime's V8 engine?",
+      "options": ["Mozilla", "Microsoft", "Google", "Apple"],
+      "correctOption": 2,
+      "explanation": "The V8 JavaScript engine that powers Node.js was developed by Google for the Chrome browser."
+    },
+    {
+      "id": 5,
+      "question": "What is the primary purpose of the WebSocket protocol?",
+      "options": [
+        "Sending one-off HTTP requests",
+        "Full-duplex real-time communication",
+        "Storing data on disk",
+        "Compressing images"
+      ],
+      "correctOption": 1,
+      "explanation": "WebSocket provides a persistent, full-duplex channel so client and server can push messages to each other in real time — exactly what Socket.io builds on."
+    },
+    {
+      "id": 6,
+      "question": "Which planet in our solar system is known as the Red Planet?",
+      "options": ["Venus", "Mars", "Jupiter", "Saturn"],
+      "correctOption": 1,
+      "explanation": "Mars appears red because its surface is rich in iron oxide (rust)."
+    },
+    {
+      "id": 7,
+      "question": "In Big-O notation, which describes the fastest-growing (least efficient) time complexity?",
+      "options": ["O(1)", "O(log n)", "O(n)", "O(n^2)"],
+      "correctOption": 3,
+      "explanation": "O(n^2) grows quadratically, faster than constant, logarithmic, or linear time, making it the least efficient of the four for large inputs."
+    }
+  ]
+}
